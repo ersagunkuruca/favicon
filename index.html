@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>HTML5 Favicon Generator</title>
+	<link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+	<script src="Blob/Blob.js"></script>
+	<script src="FileSaver/FileSaver.min.js"></script>
+	<script src="canvas-toBlob/canvas-toBlob.js"></script>
+</head>
+<body>
+	<style>
+		* {
+			font-family: inherit;
+			transition: all 0.3s;
+		}
+		html {
+			margin: 0;
+		}
+		body {
+			background-color: rgb(230,230,230);
+			font-family: Lato, Ubuntu, Arial, Helvetica, sans-serif;
+			color: black;
+			margin: 0;
+			padding: 0;
+		}
+
+		label {
+			display: block;
+			margin-bottom: 10px;
+		}
+		body > header {
+			text-align: center;
+			background-color: black;
+			color: white;
+			margin: 0 0 20px;
+			padding: 30px;
+
+
+			background: #000000; /* Old browsers */
+			background: -moz-linear-gradient(top, #000000 0%, #1D1D1D 100%); /* FF3.6+ */
+			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#000000), color-stop(100%,#1D1D1D)); /* Chrome,Safari4+ */
+			background: -webkit-linear-gradient(top, #000000 0%,#1D1D1D 100%); /* Chrome10+,Safari5.1+ */
+			background: -o-linear-gradient(top, #000000 0%,#1D1D1D 100%); /* Opera 11.10+ */
+			background: -ms-linear-gradient(top, #000000 0%,#1D1D1D 100%); /* IE10+ */
+			background: linear-gradient(to bottom, #000000 0%,#1D1D1D 100%); /* W3C */
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#1D1D1D',GradientType=0 ); /* IE6-9 */
+		}
+
+		#input {
+			position: absolute;
+			left: 50%;
+			transform: translate(-50%, 0);
+			text-align: center;
+		}
+		#result {
+			margin-top: 100px;
+			text-align: center;
+		}
+		#result section {
+			display: inline-block;
+			font-size: 0rem;
+			margin: 10px;
+		}
+		#result * {
+			text-align: center;
+			font-size: 1rem;
+		}
+		#result img {
+			display: block;
+			margin: 10px auto;
+		}
+		#result label {
+			margin-bottom: 20px;
+		}
+		#result [type="button"], label[for="imageFile"] {
+			display: block;
+			margin: 10px auto;
+			background-color: rgb(0,188,0);
+			color: white;
+			font-weight: bold;
+			border: none;
+			padding: 20px;
+			min-width: 300px;
+			font-family: inherit;
+			cursor: pointer;
+			box-shadow: inset 5px 5px 30px -10px rgba(50,255,150,0.5), 
+						0px 1px 5px rgba(0,80,80,0.5);
+			border-radius: 2px;
+		}
+		input {
+			display: inline-block;
+		}
+		#imageFile {
+			
+			width: 0;
+			height: 0;
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+
+		}
+		*:focus {
+			outline: none;
+		}
+		input:hover, label[for="imageFile"]:hover {
+			background-color: rgb(10,195,10);
+			transform: scale(1.005);
+
+		}
+	</style>
+	<header>
+		<h1>HTML5 Favicon Generator</h1>
+		<h3>By Ersagun Kuruca</h3>
+	</header>
+	<section id="input">
+		<label for="imageFile">Select a 576x576 image from your computer</label>	<input type="file" id="imageFile">
+	</section>
+	<section id="result"></section>
+	<script type="text/javascript" >
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var FloatData = (function (_super) {
+	__extends(FloatData, _super);
+    function FloatData(width, height) {
+    	//_super.call(this, 1, 1);
+    	var buffer = new ArrayBuffer(width * height * 4 * 4);
+		this.data = new Float32Array(buffer);	
+        this.width = width;
+        this.height = height;
+    }
+    FloatData.prototype.getBlob = function () {
+		if (this.blob) {
+			return this.blob;
+		}
+		var canvas = ELEM('CANVAS');
+		canvas.width = this.width;
+		canvas.height = this.height;
+		var context = canvas.getContext('2d');
+		var iD = context.getImageData(0,0,this.width,this.height);
+		this.toImageData(iD);
+		context.putImageData(iD, 0, 0);
+		var image = ELEM('IMG');
+		var blob;
+		canvas.toBlob(function (b) {blob = b;}, "image/png");
+		this.blob = blob;
+		return blob;
+	};
+	FloatData.prototype.toImageData = function (iD) {
+		for (var x = 0; x < this.width; x++) {
+			for (var y = 0; y < this.height; y++) {
+				iD.setPixel(
+					Point(x, y),
+					this.getPixel(Point(x, y)).toSavingSpace()
+				);
+			}
+		}
+	};
+	FloatData.fromImageData = function (iD) {
+		var fD = new FloatData(iD.width, iD.height);
+		for (var x = 0; x < fD.width; x++) {
+			for (var y = 0; y < fD.height; y++) {
+				fD.setPixel(
+					Point(x, y),
+					iD.getPixel(Point(x, y)).toWorkingSpace()
+				);
+			}
+		}
+		return fD;
+	}
+	FloatData.prototype.reduce = function (factor) {
+		var fD = new FloatData(this.width / factor, this.height / factor);
+		for (var x = 0; x < fD.width; x++) {
+			for (var y = 0; y < fD.height; y++) {
+				var color = new Color();
+				for (var xx = x*factor; xx < x*factor + factor; xx++) {
+					for (var yy = y*factor; yy < y*factor + factor; yy++) {
+						var newColor = this.getPixel(Point(xx, yy));
+						color.r += newColor.r * newColor.a;
+						color.g += newColor.g * newColor.a;
+						color.b += newColor.b * newColor.a;
+						color.a += newColor.a;
+					}
+				}
+				color.a /= factor*factor;
+				color.rgbMap(function (a){return a/(factor*factor*Math.max(color.a,0.001));});
+				fD.setPixel(Point(x, y), color);
+			}
+		}
+		return fD;
+	};
+	FloatData.prototype.expand = function (factor) {
+		var fD = new FloatData(this.width * factor, this.height * factor);
+		for (var x = 0; x < this.width; x++) {
+			for (var y = 0; y < this.height; y++) {
+				var color = this.getPixel(Point(x, y));
+				for (var xx = x*factor; xx < x*factor + factor; xx++) {
+					for (var yy = y*factor; yy < y*factor + factor; yy++) {
+						fD.setPixel(Point(xx,yy), color);
+					}
+				}
+			}
+		}
+		return fD;
+	};
+	FloatData.prototype.resizeTo = function (newWidth) {
+		function LCM (a, b) {
+			var ta = a, tb = b, gcd = 1;
+			while (true) {
+				if (tb === 0 || ta === 0) {
+					gcd = Math.max(ta, tb);
+					break;
+				} else if (ta > tb) {
+					ta %= tb;
+				} else if (tb > ta) {
+					tb %= ta;
+				} else if (tb === ta) {
+					gcd = ta;
+					break;
+				} 
+			}
+			return (a / gcd) * b;
+		}
+		var lcm = LCM(newWidth, this.width);
+		if (lcm === this.width) {
+			return this.reduce(this.width / newWidth);
+		} 
+		if (lcm === newWidth) {
+			return this.expand(newWidth / this.width);
+		}
+		return this.expand(lcm / this.width).reduce(lcm / newWidth);
+	};
+	FloatData.prototype.subpixelResample = function () {
+		var fD = new FloatData(this.width / 3, this.height / 3);
+		for (var x = 0; x < fD.width; x++) {
+			for (var y = 0; y < fD.height; y++) {
+				var color = new Color();
+				for (var xx = x*3+1; xx < x*3 + 4; xx++) {
+					for (var yy = y*3; yy < y*3 + 3; yy++) {
+						var prev = (xx-1 > 0) ? this.getPixel(Point(xx-1, yy)) : new Color();
+						var curr = this.getPixel(Point(xx, yy));
+						var next = (xx+1 < this.width) ? this.getPixel(Point(xx+1, yy)) : new Color();
+						color.r += prev.r * prev.a;
+						color.g += curr.g * curr.a;
+						color.b += next.b * next.a;
+						color.a += (prev.a + curr.a + next.a) / 3;
+					}	
+				}
+				color.a /= 9;
+				color.rgbMap(function(a){return a/(9*Math.max(color.a, 0.00001));});
+				fD.setPixel(Point(x, y), color);
+			}
+		}
+		return fD;
+	};
+    return FloatData;
+})(ImageData);
+ImageData.prototype.toFloatData = function () {	return FloatData.fromImageData(this); };
+ImageData.prototype.setPixel = function (point, color) {
+	var index = (point.x + point.y * this.width) * 4;
+	this.data[index + 0] = color.r;
+	this.data[index + 1] = color.g;
+	this.data[index + 2] = color.b;
+	this.data[index + 3] = color.a;	//console.log(color);
+}
+ImageData.prototype.getPixel = function (point) {
+	var index = (point.x + point.y * this.width) * 4;
+	return new Color(
+		this.data[index + 0],
+		this.data[index + 1],
+		this.data[index + 2],
+		this.data[index + 3]
+	);
+};
+
+var Color = (function () {
+	function Color (r, g, b, a) {
+		this.r = r || 0;
+		this.g = g || 0;
+		this.b = b || 0;
+		this.a = a || 0;
+	}
+	Color.prototype.rgbMap = function (func) {
+		this.r = func(this.r);
+		this.g = func(this.g);
+		this.b = func(this.b);
+		return this;
+	};
+	Color.prototype.rgbaMap = function (func) {
+		this.rgbMap(func);
+		this.a = func(this.a);
+		return this;
+	};
+	Color.toSRGB = function (linear) {
+		if (linear <= 0.0031308) {
+			return 12.92 * linear;
+		} else {
+			return 1.055 * Math.pow(linear, 1 / 2.4) - 0.055;
+		}
+	};
+	Color.toLinear = function (sRGB) {
+		if (sRGB <= 0.04045) {
+			return sRGB / 12.92;
+		} else {
+			return Math.pow((sRGB + 0.055) / 1.055, 2.4);
+		}
+	};
+	Color.normalize = function (channel) { return channel / 255; };
+	Color.to8bit = function (channel) { return channel * 255; };
+	Color.clamp255 = function (channel) { return Math.min(255, Math.max(0, channel)); };
+	Color.o = function (func1, func2) { return function (a) { return func1(func2(a)); }; };
+	Color.prototype.toWorkingSpace = function () {
+		return this.rgbaMap(Color.normalize).rgbMap(Color.toLinear);
+	};
+	Color.prototype.toSavingSpace = function () {
+		return this.rgbMap(Color.toSRGB).rgbaMap(Color.o(Color.clamp255, Color.to8bit));
+	};
+	Color.BLACK = new Color(0, 0, 0, 1);
+	Color.TRANSPARENT = new Color();
+	Color.WHITE = new Color(1, 1, 1, 1);
+	return Color;
+})();
+var Point = function (x, y) { return {x: x, y: y}; };
+
+function createICO(fDArray) {
+	var buffer = new ArrayBuffer(6 + fDArray.length * 16);
+	dataView = new DataView(buffer);
+	// ICO header
+	dataView.setUint16(0, 0, true);		 			// reserved
+	dataView.setUint16(2, 1, true); 				// ICO format
+	dataView.setUint16(4, fDArray.length, true); 	// numberOfImages
+	var fileOffset = 0;
+	var offset = 0;
+	var blobArray = [buffer];
+	for (var i = 0; i < fDArray.length; i++) {
+		dataView.setUint8(6 + offset, Math.min(fDArray[i].width, 256) % 256, true);	// image width
+		dataView.setUint8(7 + offset, Math.min(fDArray[i].height, 256) % 256, true);// image height
+		dataView.setUint8(8 + offset, 0, true);  								// color palette?
+		dataView.setUint8(9 + offset, 0, true);  								// reserved
+		dataView.setUint16(10 + offset, 1, true); 								// color planes
+		dataView.setUint16(12 + offset, 32, true);								// bits per pixel
+		dataView.setUint32(14 + offset, fDArray[i].getBlob().size, true); 		// file size
+		dataView.setUint32(18 + offset, buffer.byteLength + fileOffset, true);	// file offset
+		fileOffset += fDArray[i].getBlob().size;
+		offset += 16;
+		blobArray.push(fDArray[i].getBlob());
+	}
+	var blob = new Blob(blobArray, {type: "image/x-icon"});
+	return blob;
+}
+
+var ELEM = function (a) { return document.createElement(a); };
+
+
+window.URL = window.URL || window.webkitURL;
+var k = 255;
+var l = 0;
+var m = [];
+
+var imageFile = document.getElementById('imageFile');
+var result = document.getElementById('result');
+imageFile.onchange = function () {
+	var image = ELEM('IMG');
+	var reader = new FileReader();
+	image.onload = function () {
+		if (image.naturalWidth !== image.naturalHeight) {
+			alert("The image you provided isn't square. Try Again!");
+			return;
+		}
+		console.dir(image);
+		var canvas = ELEM('CANVAS');
+		canvas.width = image.naturalWidth;
+		canvas.height = image.naturalHeight;
+		var context = canvas.getContext('2d');
+		context.drawImage(image, 0, 0, canvas.width, canvas.height);
+		var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+		var first = FloatData.fromImageData(imageData);
+		var i = {};
+		i576 = first.resizeTo(576); // //
+		i288 = i576.reduce(2); // //
+		i.i192 = i576.reduce(3); //
+		i.i144 = i288.reduce(2); // //
+		i.i96 = i.i192.reduce(2); //
+		i.i64 = i.i192.reduce(3); 
+		i.i48 = i.i96.reduce(2); //
+		i.i32 = i.i64.reduce(2);
+		i.i16 = i.i32.reduce(2);
+		result.innerHTML = "";
+		generateResults(i, "Normal Icons");
+		var s = {};
+		s.s192 = i576.subpixelResample();
+		s.s144 = first.resizeTo(432).subpixelResample();
+		s.s96 = i288.subpixelResample();
+		s.s64 = i.i192.subpixelResample();
+		s.s48 = i.i144.subpixelResample();
+		s.s32 = i.i96.subpixelResample();
+		s.s16 = i.i48.subpixelResample();
+		
+		generateResults(s, "Subpixel Antialiased Icons");
+
+/*		saveAs(createICO([i.i192, i.i96, i.i64, i.i48, i.i32, i.i16]), "normal.ico");
+		saveAs(createICO([s192, s96, s64, s48, s32, s16]), "subpixelResampled.ico");*/
+	};
+	image.src = window.URL.createObjectURL(imageFile.files[0]);
+};
+function generateResults (i, h) {
+	var normalSection = ELEM("SECTION");
+	result.appendChild(normalSection);
+	var normalHeader = ELEM("H3");
+	normalSection.appendChild(normalHeader);
+	normalHeader.innerText = h;
+	for (imageIndex in i) {
+		var label = ELEM('LABEL');
+		normalSection.appendChild(label);
+			var checkbox = ELEM('INPUT');
+			label.appendChild(checkbox);
+			checkbox.type = "checkbox";
+			checkbox.id = imageIndex;
+			if (i[imageIndex].width in {'64':null, '48':null, '32':null, '16':null}){
+				checkbox.checked = true;
+			}
+		label.appendChild(
+			document.createTextNode(
+				i[imageIndex].width+"x"+i[imageIndex].height
+			)
+		) ;
+		var img = ELEM('IMG');
+		label.appendChild(img);
+		img.src = URL.createObjectURL(i[imageIndex].getBlob());
+	}
+	var allPNG = ELEM('input');
+	normalSection.appendChild(allPNG);
+	allPNG.type = "button";
+	allPNG.value = "Download All PNGs"; 
+	allPNG.onclick = function () {	
+		for (imageIndex in i) {
+			saveAs(i[imageIndex].getBlob(), "favicon" + i[imageIndex].width+"x"+i[imageIndex].height+ ".png");
+		}
+	};
+	var selPNG = ELEM('input');
+	normalSection.appendChild(selPNG);
+	selPNG.type = "button";
+	selPNG.value = "Download Selected PNGs"; 
+	selPNG.onclick = function () {
+		for (imageIndex in i) {
+			if (document.getElementById(imageIndex).checked) {
+				saveAs(i[imageIndex].getBlob(), "favicon" + i[imageIndex].width+"x"+i[imageIndex].height+ ".png");
+			}
+		}
+	};
+	var allICO = ELEM('input');
+	normalSection.appendChild(allICO);
+	allICO.type = "button";
+	allICO.value = "Generate ICO (All Images)"; 
+	allICO.onclick = function () {	
+		var blobArray = [];
+		for (imageIndex in i) {
+			blobArray.push(i[imageIndex]);
+		}
+		saveAs(createICO(blobArray), "favicon.ico");
+	};
+	var selICO = ELEM('input');
+	normalSection.appendChild(selICO);
+	selICO.type = "button";
+	selICO.value = "Generate ICO (Only Selected)"; 
+	selICO.onclick = function () {
+		var blobArray = [];
+		for (imageIndex in i) {
+			if (document.getElementById(imageIndex).checked) {
+				blobArray.push(i[imageIndex]);
+			}
+		}
+		saveAs(createICO(blobArray), "favicon.ico");
+	};
+}
+
+/*
+// heart symbol function, trust me, plot it ;)
+function f(xx, yy) {
+	return (xx*xx+Math.pow(1.5*yy-Math.sqrt(Math.abs(2*xx)-xx*xx),2));
+}*/
+
+
+
+
+	</script>
+</body>
+</html>
