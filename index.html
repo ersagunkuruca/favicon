@@ -337,8 +337,8 @@ function createICO(fDArray) {
 	var offset = 0;
 	var blobArray = [buffer];
 	for (var i = 0; i < fDArray.length; i++) {
-		dataView.setUint8(6 + offset, Math.min(fDArray[i].width, 256) % 256, true);	// image width
-		dataView.setUint8(7 + offset, Math.min(fDArray[i].height, 256) % 256, true);// image height
+		dataView.setUint8(6 + offset, Math.min(fDArray[i].width, 64) % 64, true);	// image width
+		dataView.setUint8(7 + offset, Math.min(fDArray[i].height, 64) % 64, true);// image height
 		dataView.setUint8(8 + offset, 0, true);  								// color palette?
 		dataView.setUint8(9 + offset, 0, true);  								// reserved
 		dataView.setUint16(10 + offset, 1, true); 								// color planes
